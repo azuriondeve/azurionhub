@@ -1,6 +1,6 @@
 local scripts = {
     [131623223084840] = function()
-        print("cu")
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/Wave%20a%20Brainrot/tsunami.lua"))()
     end,
 
     [1234567890] = function()
