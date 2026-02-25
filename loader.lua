@@ -10,9 +10,8 @@ local HttpService = game:GetService("HttpService")
 
 -- Configuration
 local Config = {
-    HubName = "AZURION HUB",
-    Discord = "discord.gg/azurion",
-    Version = "v2.4.1"
+    HubName = "AzurionLoader",
+    Version = "v3.2"
 }
 
 -- Cleanup previous executions
@@ -46,7 +45,7 @@ ScreenGui.ResetOnSpawn = false
 -- Main Frame
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 340, 0, 180) -- Adjusted height since Key System is gone
+MainFrame.Size = UDim2.new(0, 340, 0, 180)
 MainFrame.Position = UDim2.new(0.5, -170, 0.5, -90)
 MainFrame.BackgroundColor3 = Theme.Background
 MainFrame.BorderSizePixel = 0
