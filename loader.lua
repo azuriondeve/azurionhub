@@ -11,7 +11,7 @@ local HttpService = game:GetService("HttpService")
 -- Configuration
 local Config = {
     HubName = "AzurionLoader",
-    Version = "v3.2"
+    Version = "v3.3"
 }
 
 -- Cleanup previous executions
@@ -91,8 +91,8 @@ VersionLabel.Font = Enum.Font.GothamBold
 VersionLabel.TextSize = 10
 VersionLabel.Parent = MainFrame
 
--- Content Container
-local Content = Instance.new("Frame")
+-- Content Container (Changed to CanvasGroup to fix GroupTransparency error)
+local Content = Instance.new("CanvasGroup")
 Content.Size = UDim2.new(1, -40, 1, -60)
 Content.Position = UDim2.new(0, 20, 0, 50)
 Content.BackgroundTransparency = 1
@@ -167,6 +167,7 @@ task.spawn(function()
     
     TweenService:Create(MainFrame, TweenInfo.new(0.7, Enum.EasingStyle.Back), {BackgroundTransparency = 0}):Play()
     TweenService:Create(Title, TweenInfo.new(0.7), {TextTransparency = 0}):Play()
+    TweenService:Create(Content, TweenInfo.new(0.7), {GroupTransparency = 0}):Play()
     task.wait(0.5)
     
     -- Step 1: Checking Game
