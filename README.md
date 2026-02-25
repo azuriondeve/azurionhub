@@ -20,7 +20,10 @@ Currently supported games:
 * ✅ **Escape the Tsunami for Brainrots** (Active)
 * ✅ **99 Nights** (Active)
 
-## ✨ Key Features
+## ✨ Hub Features
+
+* **Keyless**
+  It doesn't have a key system, so that's a good advantage.
 
 * **Dynamic Loading**
   Loads only the required modules for the current game, reducing memory usage.
