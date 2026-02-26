@@ -1,6 +1,7 @@
 --[[
     Azurion Hub - Elite Loader (Instant Load)
     Professional Interface with Modern Design, Acrylic Effects, and Security
+    Updated with Language Support (getgenv().language)
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -8,10 +9,32 @@ local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
+-- Language Configuration
+local lang = getgenv().language or "pt" -- Padrão pt se não definido
+local Localization = {
+    ["pt"] = {
+        Initializing = "Inicializando...",
+        Verifying = "Verificando Compatibilidade...",
+        Supported = "Jogo Suportado! Carregando Hub...",
+        NotSupported = "Jogo não Suportado (ID: ",
+        Close = "Fechar"
+    },
+    ["en"] = {
+        Initializing = "Initializing...",
+        Verifying = "Verifying Compatibility...",
+        Supported = "Game Supported! Fetching Hub...",
+        NotSupported = "Game Not Supported (ID: ",
+        Close = "Close"
+    }
+}
+
+-- Fallback para pt caso a linguagem inserida não exista na tabela
+local Text = Localization[lang] or Localization["pt"]
+
 -- Configuration
 local Config = {
-    HubName = "AzurionLoader",
-    Version = "v3.3"
+    HubName = "Azurion Hub",
+    Version = "v3.4"
 }
 
 -- Cleanup previous executions
@@ -91,7 +114,7 @@ VersionLabel.Font = Enum.Font.GothamBold
 VersionLabel.TextSize = 10
 VersionLabel.Parent = MainFrame
 
--- Content Container (Changed to CanvasGroup to fix GroupTransparency error)
+-- Content Container
 local Content = Instance.new("CanvasGroup")
 Content.Size = UDim2.new(1, -40, 1, -60)
 Content.Position = UDim2.new(0, 20, 0, 50)
@@ -103,7 +126,7 @@ local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Size = UDim2.new(1, 0, 0, 30)
 StatusLabel.Position = UDim2.new(0, 0, 0.3, 0)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Initializing..."
+StatusLabel.Text = Text.Initializing
 StatusLabel.TextColor3 = Theme.SubText
 StatusLabel.Font = Enum.Font.GothamMedium
 StatusLabel.TextSize = 14
@@ -132,7 +155,7 @@ local ExitButton = Instance.new("TextButton")
 ExitButton.Size = UDim2.new(0.6, 0, 0, 35)
 ExitButton.Position = UDim2.new(0.2, 0, 0.5, 0)
 ExitButton.BackgroundColor3 = Theme.Secondary
-ExitButton.Text = "Close"
+ExitButton.Text = Text.Close
 ExitButton.TextColor3 = Theme.Text
 ExitButton.Font = Enum.Font.GothamBold
 ExitButton.TextSize = 14
@@ -171,14 +194,14 @@ task.spawn(function()
     task.wait(0.5)
     
     -- Step 1: Checking Game
-    StatusLabel.Text = "Verifying Game Compatibility..."
+    StatusLabel.Text = Text.Verifying
     animateProgress(0.4, 1)
     task.wait(1.2)
     
     local placeId = game.PlaceId
     if scripts[placeId] then
         -- Step 2: Loading
-        StatusLabel.Text = "Game Supported! Fetching Hub..."
+        StatusLabel.Text = Text.Supported
         StatusLabel.TextColor3 = Theme.Success
         animateProgress(1, 0.8)
         task.wait(1)
@@ -194,7 +217,7 @@ task.spawn(function()
         end
     else
         -- Step 3: Error
-        StatusLabel.Text = "Game Not Supported (ID: " .. placeId .. ")"
+        StatusLabel.Text = Text.NotSupported .. placeId .. ")"
         StatusLabel.TextColor3 = Theme.Error
         ProgressBG.Visible = false
         ExitButton.Visible = true
@@ -203,7 +226,7 @@ task.spawn(function()
     end
 end)
 
--- Visual Effects (Hover & Pulse)
+-- Visual Effects
 ExitButton.MouseEnter:Connect(function()
     TweenService:Create(ExitButton, TweenInfo.new(0.3), {BackgroundColor3 = Theme.Accent}):Play()
 end)
