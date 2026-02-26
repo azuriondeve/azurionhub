@@ -9,9 +9,9 @@ It uses a modular architecture to deliver real-time updates and seamless multi-g
 Execute the official loader below in your executor:
 
 ```lua
--- Azurion Hub Official Loader
+getgenv().language = "en" -- pt
 loadstring(game:HttpGet("https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/loader.lua"))()
-````
+```
 
 ## 🎮 Supported Games
 
