@@ -45,18 +45,6 @@ To run Azurion Hub, you need:
 * **Functions:** `loadstring`, `HttpGet`, `getgenv` (recommended for saving settings)
 * **Executor:** Level 7+ or compatible internal executor
 
-## 📜 Disclaimer
-
-Azurion Hub is provided for educational and experimental purposes only.
-
-The developer is not responsible for:
-
-* Account restrictions
-* Bans
-* Data resets
-
-Using an alternative account (alt) is strongly recommended.
-Use responsibly.
 
 ## 💎 Credits
 
