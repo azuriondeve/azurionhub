@@ -1,6 +1,7 @@
 --[[
     Azurion Hub - Elite Loader (Instant Load)
     Professional Interface with Modern Design, Draggable UI & Game List Support
+    Updated: Manual execution support
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -18,16 +19,18 @@ local Localization = {
         Verifying = "Verificando Compatibilidade...",
         Supported = "Jogo Suportado! Carregando Hub...",
         NotSupported = "Jogo não Suportado (ID: ",
-        SupportedGames = "Jogos Suportados:",
-        Close = "Fechar"
+        SupportedGames = "Jogos Suportados (Clique para Rodar):",
+        Close = "Fechar",
+        LoadingManual = "Carregando Script Selecionado..."
     },
     ["en"] = {
         Initializing = "Initializing...",
         Verifying = "Verifying Compatibility...",
         Supported = "Game Supported! Fetching Hub...",
         NotSupported = "Game Not Supported (ID: ",
-        SupportedGames = "Supported Games:",
-        Close = "Close"
+        SupportedGames = "Supported Games (Click to Run):",
+        Close = "Close",
+        LoadingManual = "Loading Selected Script..."
     }
 }
 
@@ -36,14 +39,13 @@ local Text = Localization[lang] or Localization["pt"]
 -- Configuration
 local Config = {
     HubName = "Azurion Hub",
-    Version = "v3.6"
+    Version = "v3.7"
 }
 
--- Script Database (Adicionados mais IDs de exemplo para a lista)
+-- Script Database
 local scripts = {
     [131623223084840] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/Wave%20a%20Brainrot/tsunami.lua",
     [126509999114328] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/99%20Nights/main.lua",
-
 }
 
 -- Theme
@@ -51,6 +53,7 @@ local Theme = {
     Background = Color3.fromRGB(12, 10, 18),
     Accent = Color3.fromRGB(138, 43, 226),
     Secondary = Color3.fromRGB(25, 20, 35),
+    Tertiary = Color3.fromRGB(35, 30, 50),
     Text = Color3.fromRGB(255, 255, 255),
     SubText = Color3.fromRGB(160, 160, 160),
     Error = Color3.fromRGB(255, 60, 60),
@@ -83,30 +86,24 @@ Stroke.Thickness = 2
 Stroke.Color = Theme.Accent
 Stroke.Parent = MainFrame
 
--- Draggable Logic Function
+-- Draggable Logic
 local function makeDraggable(frame)
     local dragging, dragInput, dragStart, startPos
-    
     frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = frame.Position
-            
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
             end)
         end
     end)
-    
     frame.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
-    
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
@@ -114,17 +111,16 @@ local function makeDraggable(frame)
         end
     end)
 end
-
 makeDraggable(MainFrame)
 
 -- Header
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 50)
 Title.BackgroundTransparency = 1
-Title.Text = Config.HubName
+Title.Text = Config.HubName .. " " .. Config.Version
 Title.TextColor3 = Theme.Text
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 22
+Title.TextSize = 20
 Title.Parent = MainFrame
 
 -- Content Container
@@ -156,10 +152,10 @@ ProgressFill.BackgroundColor3 = Theme.Accent
 ProgressFill.Parent = ProgressBG
 Instance.new("UICorner", ProgressFill).CornerRadius = UDim.new(1, 0)
 
--- List of Supported Games (Initially Hidden)
+-- List of Supported Games
 local ListFrame = Instance.new("ScrollingFrame")
 ListFrame.Name = "ListFrame"
-ListFrame.Size = UDim2.new(1, 0, 0, 120)
+ListFrame.Size = UDim2.new(1, 0, 0, 140)
 ListFrame.Position = UDim2.new(0, 0, 1, 10)
 ListFrame.BackgroundTransparency = 1
 ListFrame.ScrollBarThickness = 2
@@ -171,20 +167,49 @@ local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Padding = UDim.new(0, 5)
 UIListLayout.Parent = ListFrame
 
-local function createGameEntry(id)
+local function closeUI()
+    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 340, 0, 0), Position = UDim2.new(0.5, -170, 0.5, 0)}):Play()
+    task.wait(0.5)
+    ScreenGui:Destroy()
+end
+
+local function executeScript(url)
+    StatusLabel.Text = Text.LoadingManual
+    StatusLabel.TextColor3 = Theme.Success
+    task.wait(0.5)
+    closeUI()
+    loadstring(game:HttpGet(url))()
+end
+
+local function createGameEntry(id, url)
     local success, info = pcall(function() return MarketplaceService:GetProductInfo(id) end)
     local name = success and info.Name or "Unknown Game ("..id..")"
     
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(1, -10, 0, 25)
-    Label.BackgroundColor3 = Theme.Secondary
-    Label.Text = "  • " .. name
-    Label.TextColor3 = Theme.SubText
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 12
-    Label.Parent = ListFrame
-    Instance.new("UICorner", Label).CornerRadius = UDim.new(0, 4)
+    local Entry = Instance.new("TextButton")
+    Entry.Size = UDim2.new(1, -5, 0, 35)
+    Entry.BackgroundColor3 = Theme.Secondary
+    Entry.Text = "  " .. name
+    Entry.TextColor3 = Theme.SubText
+    Entry.TextXAlignment = Enum.TextXAlignment.Left
+    Entry.Font = Enum.Font.Gotham
+    Entry.TextSize = 12
+    Entry.AutoButtonColor = true
+    Entry.Parent = ListFrame
+    Instance.new("UICorner", Entry).CornerRadius = UDim.new(0, 6)
+
+    local RunIcon = Instance.new("TextLabel")
+    RunIcon.Size = UDim2.new(0, 60, 1, 0)
+    RunIcon.Position = UDim2.new(1, -65, 0, 0)
+    RunIcon.BackgroundTransparency = 1
+    RunIcon.Text = "RODAR >"
+    RunIcon.TextColor3 = Theme.Accent
+    RunIcon.Font = Enum.Font.GothamBold
+    RunIcon.TextSize = 10
+    RunIcon.Parent = Entry
+
+    Entry.MouseButton1Click:Connect(function()
+        executeScript(url)
+    end)
 end
 
 -- Functions
@@ -192,17 +217,11 @@ local function animateProgress(target, speed)
     TweenService:Create(ProgressFill, TweenInfo.new(speed or 1, Enum.EasingStyle.Quart), {Size = UDim2.new(target, 0, 1, 0)}):Play()
 end
 
-local function closeUI()
-    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 340, 0, 0), Position = UDim2.new(0.5, -170, 0.5, 0)}):Play()
-    task.wait(0.5)
-    ScreenGui:Destroy()
-end
-
 -- Main Logic
 task.spawn(function()
     animateProgress(0.4, 1.5)
     StatusLabel.Text = Text.Verifying
-    task.wait(1.5)
+    task.wait(1.2)
     
     local placeId = game.PlaceId
     if scripts[placeId] then
@@ -210,21 +229,15 @@ task.spawn(function()
         StatusLabel.TextColor3 = Theme.Success
         animateProgress(1, 0.8)
         task.wait(1)
-        closeUI()
-        
-        if scripts[placeId] ~= "" then
-            loadstring(game:HttpGet(scripts[placeId]))()
-        end
+        executeScript(scripts[placeId])
     else
-        -- Expand UI for List
+        -- Expand UI for Manual Selection
         StatusLabel.Text = Text.NotSupported .. placeId .. ")"
         StatusLabel.TextColor3 = Theme.Error
-        
         task.wait(0.5)
         
-        -- Animation to Expand
-        TweenService:Create(MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 340, 0, 320)}):Play()
-        TweenService:Create(Content, TweenInfo.new(0.6), {Size = UDim2.new(1, -40, 0, 240)}):Play()
+        TweenService:Create(MainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 340, 0, 350)}):Play()
+        TweenService:Create(Content, TweenInfo.new(0.6), {Size = UDim2.new(1, -40, 0, 280)}):Play()
         
         task.wait(0.3)
         ProgressBG.Visible = false
@@ -234,16 +247,14 @@ task.spawn(function()
         ListFrame.Visible = true
         TweenService:Create(ListFrame, TweenInfo.new(0.5), {Position = UDim2.new(0, 0, 0, 40)}):Play()
         
-        -- Populate List
-        for id, _ in pairs(scripts) do
-            task.spawn(function() createGameEntry(id) end)
+        for id, url in pairs(scripts) do
+            task.spawn(function() createGameEntry(id, url) end)
         end
         
-        -- Add Close Button at the bottom
         local CloseBtn = Instance.new("TextButton")
         CloseBtn.Size = UDim2.new(1, 0, 0, 35)
         CloseBtn.Position = UDim2.new(0, 0, 0.85, 0)
-        CloseBtn.BackgroundColor3 = Theme.Secondary
+        CloseBtn.BackgroundColor3 = Theme.Tertiary
         CloseBtn.Text = Text.Close
         CloseBtn.TextColor3 = Theme.Text
         CloseBtn.Font = Enum.Font.GothamBold
