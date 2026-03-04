@@ -1,7 +1,7 @@
 --[[
-    Azurion Hub - Elite Loader (Instant Load)
+    Azurion Hub - Elite Loader (Universal Support)
     Professional Interface with Modern Design, Draggable UI & Game List Support
-    Updated: Manual execution support
+    Updated: Added GameId (UniverseId) support for universal IDs like 994732206
 ]]
 
 local TweenService = game:GetService("TweenService")
@@ -39,13 +39,14 @@ local Text = Localization[lang] or Localization["pt"]
 -- Configuration
 local Config = {
     HubName = "Azurion Hub",
-    Version = "v3.7"
+    Version = "v3.8"
 }
 
--- Script Database
+-- Script Database (Suporta PlaceId ou GameId/UniverseId)
 local scripts = {
     [131623223084840] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/Wave%20a%20Brainrot/tsunami.lua",
     [126509999114328] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/99%20Nights/main.lua",
+    [994732206] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/bloxfruit/main.lua", -- Exemplo de GameId
 }
 
 -- Theme
@@ -183,7 +184,7 @@ end
 
 local function createGameEntry(id, url)
     local success, info = pcall(function() return MarketplaceService:GetProductInfo(id) end)
-    local name = success and info.Name or "Unknown Game ("..id..")"
+    local name = success and info.Name or "Game ID: "..id
     
     local Entry = Instance.new("TextButton")
     Entry.Size = UDim2.new(1, -5, 0, 35)
@@ -224,12 +225,17 @@ task.spawn(function()
     task.wait(1.2)
     
     local placeId = game.PlaceId
-    if scripts[placeId] then
+    local gameId = game.GameId -- Universal ID
+    
+    -- Checa se o PlaceId ou o GameId está no banco de dados
+    local targetScript = scripts[placeId] or scripts[gameId]
+
+    if targetScript then
         StatusLabel.Text = Text.Supported
         StatusLabel.TextColor3 = Theme.Success
         animateProgress(1, 0.8)
         task.wait(1)
-        executeScript(scripts[placeId])
+        executeScript(targetScript)
     else
         -- Expand UI for Manual Selection
         StatusLabel.Text = Text.NotSupported .. placeId .. ")"
