@@ -3,8 +3,9 @@
     Funcionalidades:
     - Toggle para Farm de Moedas (Pagar)
     - Toggle para Farm de Troféus (GanhouTrofeu)
+    - Toggle para Auto Rebirth com Quantidade Customizada (TextBox)
+    - Toggle para Auto Comer
     - Suporte para Mobile e PC
-    - Design moderno com cantos arredondados
 ]]
 
 local Players = game:GetService("Players")
@@ -20,30 +21,34 @@ if existingGui then existingGui:Destroy() end
 -- Variáveis de estado
 local farmMoeda = false
 local farmTrofeu = false
+local autoRebirth = false
+local autoComer = false
+local rebirthAmount = 1
 local menuAberto = true
 
 -- Referências aos Remotes
 local remotes = ReplicatedStorage:WaitForChild("Remotes", 5)
 local gameManager = remotes and remotes:WaitForChild("GameManager", 5)
+local rebirthRemote = ReplicatedStorage:WaitForChild("ComprarRebirth", 5)
+local foodRemote = ReplicatedStorage:WaitForChild("AddFoodEvent", 5)
 
 -- Criar ScreenGui
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "FarmGui"
 screenGui.ResetOnSpawn = false
--- Tenta colocar no PlayerGui, se falhar (executor limitado) coloca no CoreGui
 if not pcall(function() screenGui.Parent = player.PlayerGui end) then
     screenGui.Parent = CoreGui
 end
 
--- Janela Principal
+-- Janela Principal (Aumentada para caber a TextBox de Rebirth)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 220, 0, 260)
-mainFrame.Position = UDim2.new(0.5, -110, 0.4, -130)
+mainFrame.Size = UDim2.new(0, 220, 0, 420)
+mainFrame.Position = UDim2.new(0.5, -110, 0.4, -210)
 mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
-mainFrame.Draggable = true -- Suporte básico para arrastar
+mainFrame.Draggable = true 
 mainFrame.Parent = screenGui
 
 local corner = Instance.new("UICorner")
@@ -69,10 +74,7 @@ toggleBtn.Text = "F"
 toggleBtn.TextColor3 = Color3.new(1, 1, 1)
 toggleBtn.Font = Enum.Font.GothamBold
 toggleBtn.Parent = screenGui
-
-local btnCorner = Instance.new("UICorner")
-btnCorner.CornerRadius = UDim.new(1, 0)
-btnCorner.Parent = toggleBtn
+Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(1, 0)
 
 -- Função para criar Toggles
 local function createToggle(name, position, callback)
@@ -87,9 +89,7 @@ local function createToggle(name, position, callback)
     bg.TextSize = 14
     bg.Parent = mainFrame
     
-    local c = Instance.new("UICorner")
-    c.CornerRadius = UDim.new(0, 8)
-    c.Parent = bg
+    Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 8)
     
     local status = Instance.new("Frame")
     status.Size = UDim2.new(0, 4, 1, 0)
@@ -115,7 +115,7 @@ createToggle("Farm Moedas", UDim2.new(0, 20, 0, 60), function(val)
         task.spawn(function()
             while farmMoeda do
                 if gameManager then
-                    gameManager:FireServer("Pagar", 999999999999999999999999999999999999999999999999999999999999999999999999999999999)
+                    gameManager:FireServer("Pagar", 999999999999999999999999999999999999999)
                 end
                 task.wait(0.1)
             end
@@ -124,7 +124,7 @@ createToggle("Farm Moedas", UDim2.new(0, 20, 0, 60), function(val)
 end)
 
 -- Lógica de Farm de Troféus
-createToggle("Farm Troféu", UDim2.new(0, 20, 0, 120), function(val)
+createToggle("Farm Troféu", UDim2.new(0, 20, 0, 115), function(val)
     farmTrofeu = val
     if farmTrofeu then
         task.spawn(function()
@@ -138,16 +138,69 @@ createToggle("Farm Troféu", UDim2.new(0, 20, 0, 120), function(val)
     end
 end)
 
+-- Seção de Auto Rebirth com TextBox
+createToggle("Auto Rebirth", UDim2.new(0, 20, 0, 170), function(val)
+    autoRebirth = val
+    if autoRebirth then
+        task.spawn(function()
+            while autoRebirth do
+                if rebirthRemote then
+                    rebirthRemote:FireServer(tonumber(rebirthAmount) or 1, "ComprarRebirth")
+                end
+                task.wait(0.5)
+            end
+        end)
+    end
+end)
+
+local amountBox = Instance.new("TextBox")
+amountBox.Name = "RebirthAmount"
+amountBox.Size = UDim2.new(0, 180, 0, 30)
+amountBox.Position = UDim2.new(0, 20, 0, 218)
+amountBox.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+amountBox.BorderSizePixel = 0
+amountBox.TextColor3 = Color3.new(1, 1, 1)
+amountBox.Text = "1" -- Valor padrão
+amountBox.PlaceholderText = "Qtd Rebirth..."
+amountBox.Font = Enum.Font.Gotham
+amountBox.TextSize = 12
+amountBox.Parent = mainFrame
+Instance.new("UICorner", amountBox).CornerRadius = UDim.new(0, 4)
+
+amountBox.FocusLost:Connect(function()
+    local val = tonumber(amountBox.Text)
+    if val then
+        rebirthAmount = val
+    else
+        amountBox.Text = tostring(rebirthAmount)
+    end
+end)
+
+-- Lógica de Auto Comer
+createToggle("Auto Comer", UDim2.new(0, 20, 0, 260), function(val)
+    autoComer = val
+    if autoComer then
+        task.spawn(function()
+            while autoComer do
+                if foodRemote then
+                    foodRemote:FireServer()
+                end
+                task.wait(0.05)
+            end
+        end)
+    end
+end)
+
 -- Botão de Fechar Menu
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 180, 0, 40)
-closeBtn.Position = UDim2.new(0, 20, 0, 200)
+closeBtn.Position = UDim2.new(0, 20, 0, 350)
 closeBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
 closeBtn.Text = "Fechar Menu"
 closeBtn.TextColor3 = Color3.new(1, 1, 1)
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.Parent = mainFrame
-Instance.new("UICorner").Parent = closeBtn
+Instance.new("UICorner", closeBtn)
 
 -- Alternar visibilidade
 local function toggleMenu()
@@ -159,6 +212,10 @@ closeBtn.MouseButton1Click:Connect(toggleMenu)
 toggleBtn.MouseButton1Click:Connect(toggleMenu)
 
 -- Atalho de teclado (K)
+UserInputService.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.K then
+        toggleMenu()
+    end
+end)
 
-
-print("Script Carregado com Sucesso!")
+print("Script Atualizado: Auto Rebirth com Quantidade Customizada!")
