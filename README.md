@@ -51,4 +51,4 @@ To run Azurion Hub, you need:
 * **Main Developer:** AzurionDev
 * **Contributors:** Community testers and UI designers
 
-© 2024 AzurionDev. All rights reserved.
+© 2026 AzurionDev. All rights reserved.
