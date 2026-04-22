@@ -48,6 +48,7 @@ local scripts = {
     [126509999114328] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/99%20Nights/main.lua",
     [994732206] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/bloxfruit/main.lua", -- Exemplo de GameId
     [104901094326217] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/engordaecaia/main.lua",
+    [70845479499574] = "https://raw.githubusercontent.com/azuriondeve/azurionhub/refs/heads/main/games/Bitebynight/main.lua",
 
 }
 
